@@ -1,37 +1,40 @@
-name: Generar Tabla Latex
+name: Compilar LaTeX desde R
 
 on:
   push:
     branches:
       - main  
+  pull_request:
+    branches:
+      - main  
+
 jobs:
   build:
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-latest  
     steps:
-    # Paso 1: Configurar el repositorio
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Paso 2: Configurar R
-    - name: Setup R
-      uses: r-lib/actions/setup-r@v2
-      with:
-        r-version: '4.2.0'  # Cambia según tu versión de R
-
-    # Paso 3: Instalar dependencias en R
-    - name: Install R packages
+    # Paso 1: Instalar R y LaTeX
+    - name: Instalar R
       run: |
-        Rscript -e "install.packages(c('data.table', 'readxl', 'xtable'))"
+        sudo apt-get update
+        sudo apt-get install -y r-base
 
-    # Paso 4: Ejecutar el script
-    - name: Run R Script
+    - name: Instalar TeX Live (LaTeX)
       run: |
-        Rscript script.R 
-    
-    # Paso 5: Subir los archivos generados
-    - name: Upload generated files
+        sudo apt-get install -y texlive-full  # Instalar toda la distribución TeX Live
+
+    # Paso 2: Ejecutar R y compilar el documento LaTeX
+    - name: Compilar documento LaTeX
+      run: |
+        # Compilamos el archivo .tex con pdflatex
+        pdflatex archivo.tex  # Cambia el nombre si el archivo se llama diferente
+        pdflatex archivo.tex  # Necesario ejecutar pdflatex dos veces para resolver referencias cruzadas
+
+    # Paso 3: Subir el PDF generado (opcional)
+    - name: Subir PDF generado como artefacto
       uses: actions/upload-artifact@v3
       with:
-        name: latex-tables
-        path: path_to_generated_tex_files/  # Cambiar al directorio donde se guardan tus archivos .tex
+        name: documento-pdf
+        path: archivo.pdf  # Cambia el nombre si el archivo de salida tiene otro nombre
